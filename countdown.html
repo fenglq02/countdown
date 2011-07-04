@@ -1,0 +1,158 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=gb2312" />
+<title>countdown develop page</title>
+</head>
+
+<body>
+	<div id="countTest">
+		<span id="countTest_days"></span>
+		<span id="countTest_hours"></span>
+		<span id="countTest_minutes"></span>
+		<span id="countTest_seconds"></span>
+		<span id="countTest_ms"></span>
+	</div>
+	<div id="countTest2">
+		<span id="countTest2_days"></span>
+		<span id="countTest2_hours"></span>
+		<span id="countTest2_minutes"></span>
+		<span id="countTest2_seconds"></span>
+		<span id="countTest2_ms"></span>
+	</div>
+	<span id="year"></span>
+<script src="http://js.3conline.com/min/temp/v2/core-pc_v1.js"></script>
+<script>
+	
+	(function(){
+	
+		
+		function countdown(c){
+			var id=c.id;
+			var now=new Date();
+			var defaultConfig={
+				year:c.year||now.getFullYear(),
+				month:c.month-1||now.getMonth(),
+				day:c.day||now.getDate(),
+				hour:c.hour||now.getHours(), 
+				minute:c.minute||now.getMinutes(), 
+				second:c.second||now.getSeconds(), 
+				
+				
+				eleDays:c.eleDays||pc.getElem("#"+id+"_days"),
+				eleHours:c.eleHours||pc.getElem("#"+id+"_hours"),
+				eleMinutes:c.eleMinutes||pc.getElem("#"+id+"_minutes"),
+				eleSeconds:c.eleSeconds||pc.getElem("#"+id+"_seconds"),
+				eleMs:c.eleMs||pc.getElem("#"+id+"_ms")
+			};
+			
+			this.targetDateMs = Date.UTC(defaultConfig['year'], defaultConfig['month'], defaultConfig['day'], defaultConfig['hour'], defaultConfig['minute'], defaultConfig['second']),
+			this.config = pc.extend(defaultConfig,c, true);
+        	this._init(this.config);
+		}
+		countdown.prototype={
+			
+			_init:function(config){
+				var self=this,
+					c=self.config;
+				self._addShowFunc(function(nowMs){
+					var targetMs=self.targetDateMs,
+						restMs=targetMs-nowMs;
+
+					
+					
+					var date=self._transMsToDate(restMs);
+					
+					c.eleDays.innerHTML=date.days+' ';
+					c.eleHours.innerHTML=date.hours+' ';
+					c.eleMinutes.innerHTML=date.minutes+' ';
+					c.eleSeconds.innerHTML=date.seconds+' ';
+					c.eleMs.innerHTML=date.ms+' ';
+				});
+				if(typeof countdown.timer=="undefined"){
+					self._initTimer();
+				}
+				
+			},
+			_addShowFunc:function(func){
+				var self=this;
+				self._showFuncs.push(func);
+			},
+			_showFuncs:[],
+			_doGroup:function(date){
+				var self=this,
+					showFuncs=self._showFuncs,
+					c=self.config,
+					restTime=c.restTime;
+				for(var i=0;i<showFuncs.length;i++){
+					showFuncs[i](date);
+				}
+			},
+			/*
+			 * @method {interface}_initTimer
+			 * @desc Init timer of countdown with setInterval.Several countdown objects will have only one timer.
+			 * It throw rest time to _showFuncs.
+			 */
+			_initTimer:function(){
+				var self=this,
+					c=self.config;
+				
+				countdown.timer=window.setInterval(function(){
+					var now=new Date();
+					var nowMs=Date.UTC(now.getFullYear(),now.getMonth(),now.getDate(),now.getHours(),now.getMinutes(),now.getSeconds(),now.getMilliseconds())
+					
+					self._doGroup(nowMs);
+					//countdown.timer=window.setTimeout(arguments.callee,13);
+				},13);	
+				
+				
+			},
+			_transMsToDate:function(ms){
+				var s=ms/1000;
+				var days=Math.floor(s/86400);
+				s-=days*86400;
+				var hours=Math.floor(s/3600);
+				s-=hours*3600;
+				var minutes=Math.floor(s/60);
+				s-=minutes*60;
+				var seconds=Math.floor(s%60);
+				var msRest=ms-(days*86400+hours*3600+minutes*60+seconds)*1000;
+				
+				return{
+					days:days,
+					hours:hours,
+					minutes:minutes,
+					seconds:seconds,
+					ms:msRest
+				}
+			}
+		};
+		window.countdown=countdown;
+	})()
+</script>
+<script>
+	
+	var ct1=new countdown({
+		id:"countTest",
+		day:"5",
+		month:"7"
+		//eleYear:document.getElementById("year")
+	});
+	var ct2=new countdown({
+		id:"countTest2",
+		year:2012,
+		second:11
+		//eleYear:document.getElementById("year")
+	});
+	/*
+	 * transMsToDate test
+	 
+	var now=new Date();
+	var nowMs=Date.UTC(now.getFullYear(),now.getMonth()-1,now.getDate(),now.getHours(),now.getMinutes(),now.getSeconds(),now.getMilliseconds());
+	alert(nowMs)
+	var nowDate=ct1._transMsToDate(nowMs);
+	console.dir(nowDate)
+	*/
+</script>
+</body>
+</html>
