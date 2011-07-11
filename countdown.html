@@ -6,19 +6,34 @@
 </head>
 
 <body>
-	<div id="countTest">
-		<span id="countTest_days"></span>
-		<span id="countTest_hours"></span>
-		<span id="countTest_minutes"></span>
-		<span id="countTest_seconds"></span>
-		<span id="countTest_ms"></span>
+	<style>
+		.pc-countdown{font-size:48px;}
+		
+		#countTest3{ background:#131313;color:#FFBA00;padding:10px;}
+	</style>
+	<p>1.普通模式:距离明天这个时候还有多久</p>
+	<div id="countTest" class="pc-countdown">
+		<span id="countTest_days"></span> 天
+		<span id="countTest_hours"></span> 时
+		<span id="countTest_minutes"></span> 分
+		<span id="countTest_seconds"></span> 秒
 	</div>
-	<div id="countTest2">
-		<span id="countTest2_days"></span>
-		<span id="countTest2_hours"></span>
-		<span id="countTest2_minutes"></span>
-		<span id="countTest2_seconds"></span>
-		<span id="countTest2_ms"></span>
+
+	<p>2.完整模式，显示毫秒:距离2012.12.21还有多久</p>
+	<div id="countTest2" class="pc-countdown">
+		<span id="countTest2_days"></span> 天
+		<span id="countTest2_hours"></span> 时
+		<span id="countTest2_minutes"></span> 分
+		<span id="countTest2_seconds"></span> 秒
+		<span id="countTest2_ms"></span> 毫秒
+	</div>
+	<p>3.用图片代替数字，通过showRestTime设置显示效果:距离2012.12.21还有多久</p>
+	<div id="countTest3" class="pc-countdown">
+		<span id="countTest3_days"></span> 天
+		<span id="countTest3_hours"></span> 时
+		<span id="countTest3_minutes"></span> 分
+		<span id="countTest3_seconds"></span> 秒
+		<span id="countTest3_ms"></span> 毫秒
 	</div>
 	<span id="year"></span>
 <script src="http://js.3conline.com/min/temp/v2/core-pc_v1.js"></script>
@@ -30,15 +45,19 @@
 		function countdown(c){
 			var id=c.id;
 			var now=new Date();
+			console.log(pc.isUndefined(c.year)?now.getFullYear():c.year)
 			var defaultConfig={
-				year:c.year||now.getFullYear(),
-				month:c.month-1||now.getMonth(),
-				day:c.day||now.getDate(),
-				hour:c.hour||now.getHours(), 
-				minute:c.minute||now.getMinutes(), 
-				second:c.second||now.getSeconds(), 
+				refreshRate:c.refreshRate||13,
+				type:c.type||"onetime",
 				
+				year:pc.isUndefined(c.year)?now.getFullYear():c.year,
+				month:pc.isUndefined(c.month)?now.getMonth():c.month-1,
+				day:pc.isUndefined(c.day)?now.getDate():c.day,
+				hour:pc.isUndefined(c.hour)?now.getHours():c.hour, 
+				minute:pc.isUndefined(c.minute)?now.getMinutes():c.minute, 
+				second:pc.isUndefined(c.second)?now.getSeconds():c.second, 
 				
+				onFinished:c.onFinished||function(restTime){document.title+=("计时完毕")},
 				eleDays:c.eleDays||pc.getElem("#"+id+"_days"),
 				eleHours:c.eleHours||pc.getElem("#"+id+"_hours"),
 				eleMinutes:c.eleMinutes||pc.getElem("#"+id+"_minutes"),
@@ -54,38 +73,83 @@
 			
 			_init:function(config){
 				var self=this,
-					c=self.config;
-				self._addShowFunc(function(nowMs){
+					c=self.config,
+					index=self._timerFuncs.length;
+				self._addTimerFunc(function(nowMs){
 					var targetMs=self.targetDateMs,
-						restMs=targetMs-nowMs;
-
+						restMs=targetMs-nowMs,
+						restTime;
+						
+					if(restMs<=0){//time over
+						restMs=0;
+						restTime=self._transMsToDate(restMs);
+						self._showRestTime(restTime);
+						//console.log(index);
+						self._removeTimerFunc(index);
+						c.onFinished(restTime);
+						return;
+					}
+					restTime=self._transMsToDate(restMs);
+					self._showRestTime(restTime);
 					
-					
-					var date=self._transMsToDate(restMs);
-					
-					c.eleDays.innerHTML=date.days+' ';
-					c.eleHours.innerHTML=date.hours+' ';
-					c.eleMinutes.innerHTML=date.minutes+' ';
-					c.eleSeconds.innerHTML=date.seconds+' ';
-					c.eleMs.innerHTML=date.ms+' ';
 				});
 				if(typeof countdown.timer=="undefined"){
 					self._initTimer();
 				}
 				
 			},
-			_addShowFunc:function(func){
-				var self=this;
-				self._showFuncs.push(func);
-			},
-			_showFuncs:[],
-			_doGroup:function(date){
+			/*
+			 * @method _showRestTime
+			 * @param restTime{Object} Contains 'days','hours','minutes','seconds','ms'.
+			 * Such as:
+			 * {
+			 * 		days:20,
+			 * 		hours:5,
+			 * 		minutes:39,
+			 * 		seconds:29,
+			 * 		ms:763
+			 * }
+			 * @desc Show rest time .If you defined function 'showRestTime',it will run your function.
+			 * Otherwise it will run default function,which set every data to default elements.
+			 */
+			_showRestTime:function(restTime){
 				var self=this,
-					showFuncs=self._showFuncs,
-					c=self.config,
-					restTime=c.restTime;
-				for(var i=0;i<showFuncs.length;i++){
-					showFuncs[i](date);
+					c=self.config;
+				if(typeof c.showRestTime!="undefined"){
+					c.showRestTime(restTime,c);
+				}else{
+					if(c.eleDays!=null){c.eleDays.innerHTML=restTime.days};
+					if(c.eleHours!=null){c.eleHours.innerHTML=restTime.hours};
+					if(c.eleMinutes!=null){c.eleMinutes.innerHTML=restTime.minutes};
+					if(c.eleSeconds!=null){c.eleSeconds.innerHTML=restTime.seconds};
+					if(c.eleMs!=null){c.eleMs.innerHTML=restTime.ms};
+				}
+			},
+			_removeTimerFunc:function(index){
+				var self=this;
+				self._timerFuncs.splice(index,1);
+			},
+			_addTimerFunc:function(func){
+				var self=this;
+				self._timerFuncs.push(func);
+			},
+			/*
+			 * @property _showFuncs
+			 * @desc Used to record every countdown object's date show function.
+			 * The property which in the prototype chain,will exist only once.
+			 */
+			_timerFuncs:[],
+			
+			/*
+			 * @method _doGroup
+			 * @param info
+			 * @desc Pass info to all functions in _showFuncs and excute them.
+			 */
+			_doGroup:function(info){
+				var self=this,
+					timerFuncs=self._timerFuncs;
+				for(var i=0;i<timerFuncs.length;i++){
+					timerFuncs[i](info);
 				}
 			},
 			/*
@@ -95,25 +159,48 @@
 			 */
 			_initTimer:function(){
 				var self=this,
-					c=self.config;
-				
-				countdown.timer=window.setInterval(function(){
-					var now=new Date();
-					var nowMs=Date.UTC(now.getFullYear(),now.getMonth(),now.getDate(),now.getHours(),now.getMinutes(),now.getSeconds(),now.getMilliseconds())
+					c=self.config,
+					refreshRate=c.refreshRate;
 					
-					self._doGroup(nowMs);
-					//countdown.timer=window.setTimeout(arguments.callee,13);
-				},13);	
-				
+				if(c.type=="onetime"){//Read time of now only once.
+					var now=new Date();
+					var nowMs=Date.UTC(now.getFullYear(),now.getMonth(),now.getDate(),now.getHours(),now.getMinutes(),now.getSeconds(),now.getMilliseconds());
+					countdown.timer=window.setInterval(function(){
+						nowMs=nowMs+refreshRate;
+						self._doGroup(nowMs);
+						//countdown.timer=window.setTimeout(arguments.callee,13);
+					},refreshRate);	
+				}else if(c.type=="everytime"){//Read time of now everytime.
+					countdown.timer=window.setInterval(function(){
+						var now=new Date();
+						var nowMs=Date.UTC(now.getFullYear(),now.getMonth(),now.getDate(),now.getHours(),now.getMinutes(),now.getSeconds(),now.getMilliseconds())
+						self._doGroup(nowMs);
+						//countdown.timer=window.setTimeout(arguments.callee,13);
+					},refreshRate);	
+				}
 				
 			},
+			/*
+			 * @method _transMsToDate
+			 * @param ms{Number} The milliseconds you want to trans to date format.
+			 * @desc Trans milliseconds to date.This function makes date's show more easier.
+			 * @return {object}Contains days,hours,minutes,seconds,ms.
+			 */
 			_transMsToDate:function(ms){
 				var s=ms/1000;
-				var days=Math.floor(s/86400);
-				s-=days*86400;
-				var hours=Math.floor(s/3600);
+				/*
+				 * Other way to trans ms to date
+				 * 
+					var seconds = Math.floor(s % 60);
+				    var minutes = Math.floor((s / 60) % 60);
+				    var hours = Math.floor((s / 3600) % 24);
+				    var days = Math.floor((s / 3600) / 24);
+				*/
+				var days=Math.floor(s/86400);//seconds to days
+				s-=days*86400;//rest seconds
+				var hours=Math.floor(s/3600);//seconds to hours
 				s-=hours*3600;
-				var minutes=Math.floor(s/60);
+				var minutes=Math.floor(s/60);//seconds to minutes
 				s-=minutes*60;
 				var seconds=Math.floor(s%60);
 				var msRest=ms-(days*86400+hours*3600+minutes*60+seconds)*1000;
@@ -134,15 +221,65 @@
 	
 	var ct1=new countdown({
 		id:"countTest",
-		day:"5",
-		month:"7"
+		type:"everytime",
+		day:new Date().getDate()+1
+		//refreshRate:1000
 		//eleYear:document.getElementById("year")
 	});
 	var ct2=new countdown({
 		id:"countTest2",
 		year:2012,
-		second:11
+		month:12,
+		day:21,
+		hour:0,
+		minute:0,
+		second:0
 		//eleYear:document.getElementById("year")
+	});
+	var ct3=new countdown({
+		id:"countTest3",
+		year:2012,
+		month:12,
+		day:21,
+		hour:0,
+		minute:0,
+		second:0,
+		
+		showRestTime:function(restTime,config){
+			var eleDays=config.eleDays,
+				eleHours=config.eleHours,
+				eleMinutes=config.eleMinutes,
+				eleSeconds=config.eleSeconds,
+				eleMs=config.eleMs;
+			var daysHtml='',hoursHtml='',minutesHtml='',secondsHtml='',msHtml='';
+			var days=(restTime.days+'').split('');
+			var hours=(restTime.hours+'').split('');
+			var minutes=(restTime.minutes+'').split('');
+			var seconds=(restTime.seconds+'').split('');
+			var ms=(restTime.ms+'').split('');
+			//console.log(daysHtml)
+			
+			for(var i=0;i<days.length;i++){
+				daysHtml+='<img src="img/num'+days[i]+'.png"></img>';
+			}
+			for(var i=0;i<hours.length;i++){
+				hoursHtml+='<img src="img/num'+hours[i]+'.png"></img>';
+			}
+			for(var i=0;i<minutes.length;i++){
+				minutesHtml+='<img src="img/num'+minutes[i]+'.png"></img>';
+			}
+			for(var i=0;i<seconds.length;i++){
+				secondsHtml+='<img src="img/num'+seconds[i]+'.png"></img>';
+			}
+			for(var i=0;i<ms.length;i++){
+				msHtml+='<img src="img/num'+ms[i]+'.png"></img>';
+			}
+			eleDays.innerHTML=daysHtml;
+			eleHours.innerHTML=hoursHtml;
+			eleMinutes.innerHTML=minutesHtml;
+			eleSeconds.innerHTML=secondsHtml;
+			eleMs.innerHTML=msHtml;
+		}
 	});
 	/*
 	 * transMsToDate test

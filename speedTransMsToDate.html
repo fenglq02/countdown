@@ -1,0 +1,63 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=gb2312" />
+        <title>transMsToDate 速度测试</title>
+    </head>
+	<body>
+		<p>毫秒转换为时间对象耗时对比：（FF\Chrome：方法一快；IE8：方法二稍快）</p>
+		<div id="J_console"></div>
+		<script>
+			function transMsToDate1(ms){
+				var s=ms/1000;
+				var days=Math.floor(s/86400);//seconds to days
+				s-=days*86400;//rest seconds
+				var hours=Math.floor(s/3600);//seconds to hours
+				s-=hours*3600;
+				var minutes=Math.floor(s/60);//seconds to minutes
+				s-=minutes*60;
+				var seconds=Math.floor(s%60);
+				var msRest=ms-(days*86400+hours*3600+minutes*60+seconds)*1000;
+			}
+			function transMsToDate2(ms){
+				var s=ms/1000;
+				var seconds = Math.floor(s % 60);
+			    var minutes = Math.floor((s / 60) % 60);
+			    var hours = Math.floor((s / 3600) % 24);
+			    var days = Math.floor((s / 3600) / 24);
+				var msRest=ms-(days*86400+hours*3600+minutes*60+seconds)*1000;
+			}
+			
+			function testSpeed(func1,func2){
+				var testData=[],
+					eleConsole=document.getElementById("J_console");
+				for (var i=0;i<100000;i++){
+					testData.push(i);
+				}
+				//testData inited
+				
+				
+				
+				
+				var start=(new Date())*1;
+				//console.log(testData)
+				for(var j=0;j<testData.length;j++){
+					func1(testData[j]);
+				}
+				var end=(new Date())*1;
+				eleConsole.innerHTML+="<p>函数一transMsToDate1耗时："+(end-start)+"毫秒</p>";
+				
+				var start2=(new Date())*1;
+				for(var j=0;j<testData.length;j++){
+					func2(testData[j]);
+				}
+				var end2=(new Date())*1;
+				eleConsole.innerHTML+="<p>函数二transMsToDate2耗时："+(end2-start2)+"毫秒</p>";
+				
+				
+			}
+			
+			testSpeed(transMsToDate1,transMsToDate2)
+		</script>
+	</body>
+	</html>
