@@ -1,0 +1,117 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=gb2312" />
+<title>countdown develop page</title>
+</head>
+
+<body>
+	<style>
+		.pc-countdown{font-size:48px;}
+		
+		#countTest3{ background:#131313;color:#FFBA00;padding:10px;}
+	</style>
+
+	<p>1.普通模式:距离明天这个时候还有多久</p>
+	<div id="countTest" class="pc-countdown">
+		<span id="countTest_days"></span> 天
+		<span id="countTest_hours"></span> 时
+		<span id="countTest_minutes"></span> 分
+		<span id="countTest_seconds"></span> 秒
+	</div>
+
+	<p>2.完整模式，显示毫秒:距离2012.12.21还有多久</p>
+	<div id="countTest2" class="pc-countdown">
+		<span id="countTest2_days"></span> 天
+		<span id="countTest2_hours"></span> 时
+		<span id="countTest2_minutes"></span> 分
+		<span id="countTest2_seconds"></span> 秒
+		<span id="countTest2_ms"></span> 毫秒
+	</div>
+	<p>3.用图片代替数字，通过showRestTime设置显示效果:距离2012.12.21还有多久</p>
+	<div id="countTest3" class="pc-countdown">
+		<span id="countTest3_days"></span> 天
+		<span id="countTest3_hours"></span> 时
+		<span id="countTest3_minutes"></span> 分
+		<span id="countTest3_seconds"></span> 秒
+		<span id="countTest3_ms"></span> 毫秒
+	</div>
+	<span id="year"></span>
+<script src="http://js.3conline.com/min/temp/v2/core-pc_v1.js"></script>
+<script src="countdown.js"></script>
+<script>
+	
+	var ct1=new pc.countdown({
+		id:"countTest",
+		type:"everytime",
+		day:new Date().getDate()+1
+		//refreshRate:1000
+		//eleYear:document.getElementById("year")
+	});
+	var ct2=new pc.countdown({
+		id:"countTest2",
+		year:2012,
+		month:12,
+		day:21,
+		hour:0,
+		minute:0,
+		second:0
+		//eleYear:document.getElementById("year")
+	});
+	var ct3=new pc.countdown({
+		id:"countTest3",
+		year:2012,
+		month:12,
+		day:21,
+		hour:0,
+		minute:0,
+		second:0,
+		
+		showRestTime:function(restTime,config){
+			var eleDays=config.eleDays,
+				eleHours=config.eleHours,
+				eleMinutes=config.eleMinutes,
+				eleSeconds=config.eleSeconds,
+				eleMs=config.eleMs;
+			var daysHtml='',hoursHtml='',minutesHtml='',secondsHtml='',msHtml='';
+			var days=(restTime.days+'').split('');
+			var hours=(restTime.hours+'').split('');
+			var minutes=(restTime.minutes+'').split('');
+			var seconds=(restTime.seconds+'').split('');
+			var ms=(restTime.ms+'').split('');
+			//console.log(daysHtml)
+			
+			for(var i=0;i<days.length;i++){
+				daysHtml+='<img src="img/num'+days[i]+'.png"></img>';
+			}
+			for(var i=0;i<hours.length;i++){
+				hoursHtml+='<img src="img/num'+hours[i]+'.png"></img>';
+			}
+			for(var i=0;i<minutes.length;i++){
+				minutesHtml+='<img src="img/num'+minutes[i]+'.png"></img>';
+			}
+			for(var i=0;i<seconds.length;i++){
+				secondsHtml+='<img src="img/num'+seconds[i]+'.png"></img>';
+			}
+			for(var i=0;i<ms.length;i++){
+				msHtml+='<img src="img/num'+ms[i]+'.png"></img>';
+			}
+			eleDays.innerHTML=daysHtml;
+			eleHours.innerHTML=hoursHtml;
+			eleMinutes.innerHTML=minutesHtml;
+			eleSeconds.innerHTML=secondsHtml;
+			eleMs.innerHTML=msHtml;
+		}
+	});
+	/*
+	 * transMsToDate test
+	 
+	var now=new Date();
+	var nowMs=Date.UTC(now.getFullYear(),now.getMonth()-1,now.getDate(),now.getHours(),now.getMinutes(),now.getSeconds(),now.getMilliseconds());
+	alert(nowMs)
+	var nowDate=ct1._transMsToDate(nowMs);
+	console.dir(nowDate)
+	*/
+</script>
+</body>
+</html>
